@@ -10,19 +10,27 @@
       <h2 class="h4 text-gray font-weight-light">Share Your Photos</h2>
     </div>
     {% if g.user %}
-    <form id="form" action="/" method="post" enctype="multipart/form-data"
-      class="form-inline d-flex align-items-center justify-content-center">
-      <input type="file" name="file" id="file" class="form-control mr-2">
-      <button class="btn btn-outline-dark" type="submit">Upload</button>
+    {% if uploaded %}
+    {% if url %}
+    <form onsubmit="copyToClipboard()" class="form-inline d-flex align-items-center justify-content-center">
+      <input type="url" name="link" id="img-link" class="form-control mr-2" value="{{url}}">
+      <button class="btn btn-outline-dark" type="button" onclick="copyToClipboard()">Copy</button>
     </form>
-    {% else %}
-    <a class="btn btn-primary text-white" href="/auth/login/github">
-      Login with GitHub
-    </a>
     {% endif %}
-
+    {% endif %}
+    {% endif %}
   </div>
 </div>
+
+<script>
+  const copyToClipboard = () => {
+    const copyText = document.getElementById("img-link");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Copied to Clipboard");
+  }
+</script>
 {% endblock %}
 
 {% block content %}

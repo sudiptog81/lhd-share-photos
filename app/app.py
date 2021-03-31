@@ -1,28 +1,51 @@
 import os
 
 from flask import Flask, render_template
+from flask_migrate import Migrate
+from werkzeug.middleware.shared_data import SharedDataMiddleware
+
 from . import settings, controllers, models
 from .extensions import db
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def create_app(config_object=settings):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_object)
 
+    Migrate(app, db)
+
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
+
     return app
+
 
 def register_extensions(app):
     """Register Flask extensions."""
     db.init_app(app)
 
+    from .models import user
+    from .models import photo
+
     with app.app_context():
         db.create_all()
+
+    app.add_url_rule(
+        '/uploads/<filename>',
+        'uploaded_file',
+        build_only=True
+    )
+
+    app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
+        '/uploads': settings.UPLOAD_FOLDER
+    })
+
     return None
+
 
 def register_blueprints(app):
     """Register Flask blueprints."""
@@ -30,6 +53,7 @@ def register_blueprints(app):
     app.register_blueprint(controllers.auth.blueprint)
     app.register_blueprint(controllers.tutorial.blueprint)
     return None
+
 
 def register_errorhandlers(app):
     """Register error handlers."""
